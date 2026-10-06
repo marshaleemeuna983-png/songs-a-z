@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<title>Songs A-Z</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  padding:14px;
+  font-family:Arial,sans-serif;
+  background:#000;
+  color:#fff;
+}
+
+.app{
+  max-width:600px;
+  margin:auto;
+}
+
+h1{
+  font-size:22px;
+  margin:5px 0;
+}
+
+.sub{
+  color:#888;
+  font-size:13px;
+  margin-bottom:15px;
+}
+
+input,button{
+  width:100%;
+  padding:13px;
+  margin:5px 0;
+  border:0;
+  border-radius:9px;
+  font-size:15px;
+}
+
+input{
+  background:#222;
+  color:#fff;
+}
+
+button{
+  background:#1DB954;
+  color:#000;
+  font-weight:bold;
+}
+
+#error{
+  color:#ff5555;
+  text-align:center;
+  min-height:20px;
+}
+
+.count{
+  color:#888;
+  font-size:13px;
+  margin:10px 2px;
+}
+
+.song{
+  background:#111;
+  padding:11px;
+  margin:6px 0;
+  border-radius:9px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.info{
+  min-width:0;
+}
+
+.title{
+  display:block;
+  font-weight:bold;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.artist{
+  color:#999;
+  font-size:13px;
+}
+
+.delete{
+  width:auto;
+  margin:0;
+  padding:5px 8px;
+  background:transparent;
+  color:#999;
+  font-size:18px;
+}
+
+.empty{
+  text-align:center;
+  color:#666;
+  padding:30px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>🎵 Songs A-Z</h1>
+
+<div class="sub">
+My personal offline song notebook
+</div>
+
+<input id="song" placeholder="Song title">
+
+<input id="artist" placeholder="Artist">
+
+<button onclick="addSong()">+ ADD SONG</button>
+
+<p id="error"></p>
+
+<input id="search"
+       placeholder="🔍 Search songs or artists"
+       oninput="showSongs()">
+
+<div id="count" class="count"></div>
+
+<div id="list"></div>
+
+</div>
+
+<script>
+
+let songs =
+JSON.parse(localStorage.getItem("songsAZ") || "[]");
+
+
+function saveSongs(){
+
+localStorage.setItem(
+"songsAZ",
+JSON.stringify(songs)
+);
+
+}
+
+
+function addSong(){
+
+let title =
+document.getElementById("song").value.trim();
+
+let artist =
+document.getElementById("artist").value.trim();
+
+let error =
+document.getElementById("error");
+
+
+if(!title || !artist){
+
+error.textContent =
+"Please enter both song title and artist.";
+
+return;
+
+}
+
+
+let duplicate =
+songs.some(function(x){
+
+return x.title.toLowerCase() === title.toLowerCase()
+&&
+x.artist.toLowerCase() === artist.toLowerCase();
+
+});
+
+
+if(duplicate){
+
+error.textContent =
+"This song is already in your notebook.";
+
+return;
+
+}
+
+
+songs.push({
+
+title:title,
+artist:artist
+
+});
+
+
+saveSongs();
+
+
+document.getElementById("song").value="";
+document.getElementById("artist").value="";
+
+error.textContent="";
+
+showSongs();
+
+}
+
+
+function deleteSong(index){
+
+songs.splice(index,1);
+
+saveSongs();
+
+showSongs();
+
+}
+
+
+function showSongs(){
+
+let query =
+document.getElementById("search").value
+.toLowerCase()
+.trim();
+
+
+let list =
+document.getElementById("list");
+
+list.innerHTML="";
+
+
+let filtered =
+songs.filter(function(song){
+
+return song.title.toLowerCase().includes(query)
+||
+song.artist.toLowerCase().includes(query);
+
+});
+
+
+filtered.sort(function(a,b){
+
+return a.title.localeCompare(
+b.title,
+undefined,
+{sensitivity:"base"}
+);
+
+});
+
+
+document.getElementById("count").textContent =
+filtered.length +
+(filtered.length === 1 ? " song" : " songs");
+
+
+if(filtered.length === 0){
+
+list.innerHTML =
+'<div class="empty">' +
+(songs.length === 0
+? "Your song notebook is empty."
+: "No matching songs.") +
+'</div>';
+
+return;
+
+}
+
+
+filtered.forEach(function(song){
+
+let originalIndex =
+songs.indexOf(song);
+
+
+let row =
+document.createElement("div");
+
+row.className="song";
+
+
+let info =
+document.createElement("div");
+
+info.className="info";
+
+
+let title =
+document.createElement("span");
+
+title.className="title";
+
+title.textContent=song.title;
+
+
+let artist =
+document.createElement("span");
+
+artist.className="artist";
+
+artist.textContent=song.artist;
+
+
+info.appendChild(title);
+
+info.appendChild(artist);
+
+
+let deleteButton =
+document.createElement("button");
+
+deleteButton.className="delete";
+
+deleteButton.textContent="🗑️";
+
+deleteButton.onclick=function(){
+
+deleteSong(originalIndex);
+
+};
+
+
+row.appendChild(info);
+
+row.appendChild(deleteButton);
+
+list.appendChild(row);
+
+});
+
+}
+
+
+document
+.getElementById("song")
+.addEventListener("keydown",function(e){
+
+if(e.key==="Enter") addSong();
+
+});
+
+
+document
+.getElementById("artist")
+.addEventListener("keydown",function(e){
+
+if(e.key==="Enter") addSong();
+
+});
+
+
+showSongs();
+
+
+/* Offline support */
+
+if("serviceWorker" in navigator){
+
+window.addEventListener("load",function(){
+
+navigator.serviceWorker.register(
+"service-worker.js"
+);
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
