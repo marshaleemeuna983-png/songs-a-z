@@ -1,0 +1,10 @@
+{
+  "name": "Songs A-Z",
+  "short_name": "Songs A-Z",
+  "description": "My personal offline song notebook",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait"
+}
