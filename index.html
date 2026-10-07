@@ -11,101 +11,137 @@
 *{box-sizing:border-box}
 
 body{
-  margin:0;
-  padding:14px;
-  font-family:Arial,sans-serif;
-  background:#000;
-  color:#fff;
+margin:0;
+padding:14px;
+font-family:Arial,sans-serif;
+background:#000;
+color:#fff;
 }
 
 .app{
-  max-width:600px;
-  margin:auto;
+max-width:600px;
+margin:auto;
 }
 
 h1{
-  font-size:22px;
-  margin:5px 0;
+font-size:22px;
+margin:5px 0;
 }
 
 .sub{
-  color:#888;
-  font-size:13px;
-  margin-bottom:15px;
+color:#888;
+font-size:13px;
+margin-bottom:15px;
 }
 
-input,button{
-  width:100%;
-  padding:13px;
-  margin:5px 0;
-  border:0;
-  border-radius:9px;
-  font-size:15px;
+input,textarea,button{
+width:100%;
+padding:13px;
+margin:5px 0;
+border:0;
+border-radius:9px;
+font-size:15px;
 }
 
-input{
-  background:#222;
-  color:#fff;
+input,textarea{
+background:#222;
+color:#fff;
+outline:none;
+}
+
+textarea{
+min-height:90px;
+resize:vertical;
+font-family:Arial,sans-serif;
 }
 
 button{
-  background:#1DB954;
-  color:#000;
-  font-weight:bold;
+background:#1DB954;
+color:#000;
+font-weight:bold;
 }
 
-#error{
-  color:#ff5555;
-  text-align:center;
-  min-height:20px;
+.secondary{
+background:#222;
+color:#fff;
+}
+
+.error{
+color:#ff5555;
+text-align:center;
+min-height:20px;
 }
 
 .count{
-  color:#888;
-  font-size:13px;
-  margin:10px 2px;
+color:#888;
+font-size:13px;
+margin:10px 2px;
 }
 
 .song{
-  background:#111;
-  padding:11px;
-  margin:6px 0;
-  border-radius:9px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.info{
-  min-width:0;
+background:#111;
+padding:12px;
+margin:7px 0;
+border-radius:10px;
 }
 
 .title{
-  display:block;
-  font-weight:bold;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+font-size:16px;
+font-weight:bold;
 }
 
 .artist{
-  color:#999;
-  font-size:13px;
+color:#aaa;
+font-size:13px;
+margin-top:3px;
+}
+
+.notes{
+color:#ddd;
+font-size:14px;
+margin-top:9px;
+white-space:pre-wrap;
+}
+
+.actions{
+display:flex;
+gap:6px;
+margin-top:10px;
+}
+
+.actions button{
+width:auto;
+margin:0;
+padding:8px 12px;
+}
+
+.edit{
+background:#333;
+color:#fff;
 }
 
 .delete{
-  width:auto;
-  margin:0;
-  padding:5px 8px;
-  background:transparent;
-  color:#999;
-  font-size:18px;
+background:#333;
+color:#ff7777;
 }
 
 .empty{
-  text-align:center;
-  color:#666;
-  padding:30px;
+text-align:center;
+color:#666;
+padding:30px;
+}
+
+#editor{
+display:none;
+background:#0d0d0d;
+padding:12px;
+border-radius:10px;
+margin-bottom:12px;
+}
+
+#editor h2{
+font-size:17px;
+margin:2px 0 8px;
 }
 </style>
 </head>
@@ -120,17 +156,31 @@ button{
 My personal offline song notebook
 </div>
 
+<div id="editor">
+
+<h2 id="editorTitle">Add Song</h2>
+
 <input id="song" placeholder="Song title">
 
 <input id="artist" placeholder="Artist">
 
-<button onclick="addSong()">+ ADD SONG</button>
+<textarea id="notes"
+placeholder="Add your words, thoughts, memories, or notes..."></textarea>
 
-<p id="error"></p>
+<button onclick="saveSong()">💾 SAVE</button>
 
-<input id="search"
-       placeholder="🔍 Search songs or artists"
-       oninput="showSongs()">
+<button class="secondary" onclick="cancelEdit()">CANCEL</button>
+
+<p id="error" class="error"></p>
+
+</div>
+
+<button onclick="openNew()">+ ADD SONG</button>
+
+<input
+id="search"
+placeholder="🔍 Search songs, artists or notes"
+oninput="showSongs()">
 
 <div id="count" class="count"></div>
 
@@ -143,8 +193,10 @@ My personal offline song notebook
 let songs =
 JSON.parse(localStorage.getItem("songsAZ") || "[]");
 
+let editingIndex = -1;
 
-function saveSongs(){
+
+function saveData(){
 
 localStorage.setItem(
 "songsAZ",
@@ -154,13 +206,77 @@ JSON.stringify(songs)
 }
 
 
-function addSong(){
+function openNew(){
+
+editingIndex = -1;
+
+document.getElementById("editorTitle").textContent =
+"Add Song";
+
+document.getElementById("song").value = "";
+
+document.getElementById("artist").value = "";
+
+document.getElementById("notes").value = "";
+
+document.getElementById("error").textContent = "";
+
+document.getElementById("editor").style.display =
+"block";
+
+window.scrollTo(0,0);
+
+}
+
+
+function editSong(index){
+
+editingIndex = index;
+
+let song = songs[index];
+
+document.getElementById("editorTitle").textContent =
+"Edit Song";
+
+document.getElementById("song").value =
+song.title;
+
+document.getElementById("artist").value =
+song.artist;
+
+document.getElementById("notes").value =
+song.notes || "";
+
+document.getElementById("error").textContent = "";
+
+document.getElementById("editor").style.display =
+"block";
+
+window.scrollTo(0,0);
+
+}
+
+
+function cancelEdit(){
+
+document.getElementById("editor").style.display =
+"none";
+
+editingIndex = -1;
+
+}
+
+
+function saveSong(){
 
 let title =
 document.getElementById("song").value.trim();
 
 let artist =
 document.getElementById("artist").value.trim();
+
+let notes =
+document.getElementById("notes").value.trim();
 
 let error =
 document.getElementById("error");
@@ -177,11 +293,13 @@ return;
 
 
 let duplicate =
-songs.some(function(x){
+songs.some(function(song,index){
 
-return x.title.toLowerCase() === title.toLowerCase()
+if(index === editingIndex) return false;
+
+return song.title.toLowerCase() === title.toLowerCase()
 &&
-x.artist.toLowerCase() === artist.toLowerCase();
+song.artist.toLowerCase() === artist.toLowerCase();
 
 });
 
@@ -196,21 +314,30 @@ return;
 }
 
 
+if(editingIndex === -1){
+
 songs.push({
 
 title:title,
-artist:artist
+artist:artist,
+notes:notes
 
 });
 
+}else{
 
-saveSongs();
+songs[editingIndex].title = title;
+
+songs[editingIndex].artist = artist;
+
+songs[editingIndex].notes = notes;
+
+}
 
 
-document.getElementById("song").value="";
-document.getElementById("artist").value="";
+saveData();
 
-error.textContent="";
+cancelEdit();
 
 showSongs();
 
@@ -219,11 +346,15 @@ showSongs();
 
 function deleteSong(index){
 
+if(confirm("Delete this song?")){
+
 songs.splice(index,1);
 
-saveSongs();
+saveData();
 
 showSongs();
+
+}
 
 }
 
@@ -235,11 +366,10 @@ document.getElementById("search").value
 .toLowerCase()
 .trim();
 
-
 let list =
 document.getElementById("list");
 
-list.innerHTML="";
+list.innerHTML = "";
 
 
 let filtered =
@@ -247,7 +377,9 @@ songs.filter(function(song){
 
 return song.title.toLowerCase().includes(query)
 ||
-song.artist.toLowerCase().includes(query);
+song.artist.toLowerCase().includes(query)
+||
+(song.notes || "").toLowerCase().includes(query);
 
 });
 
@@ -284,60 +416,92 @@ return;
 
 filtered.forEach(function(song){
 
-let originalIndex =
+let index =
 songs.indexOf(song);
-
 
 let row =
 document.createElement("div");
 
-row.className="song";
-
-
-let info =
-document.createElement("div");
-
-info.className="info";
+row.className = "song";
 
 
 let title =
-document.createElement("span");
+document.createElement("div");
 
-title.className="title";
+title.className = "title";
 
-title.textContent=song.title;
+title.textContent =
+song.title;
 
 
 let artist =
-document.createElement("span");
+document.createElement("div");
 
-artist.className="artist";
+artist.className = "artist";
 
-artist.textContent=song.artist;
-
-
-info.appendChild(title);
-
-info.appendChild(artist);
+artist.textContent =
+song.artist;
 
 
-let deleteButton =
+row.appendChild(title);
+
+row.appendChild(artist);
+
+
+if(song.notes){
+
+let notes =
+document.createElement("div");
+
+notes.className = "notes";
+
+notes.textContent =
+song.notes;
+
+row.appendChild(notes);
+
+}
+
+
+let actions =
+document.createElement("div");
+
+actions.className = "actions";
+
+
+let edit =
 document.createElement("button");
 
-deleteButton.className="delete";
+edit.className = "edit";
 
-deleteButton.textContent="🗑️";
+edit.textContent = "✏️ Edit";
 
-deleteButton.onclick=function(){
+edit.onclick = function(){
 
-deleteSong(originalIndex);
+editSong(index);
 
 };
 
 
-row.appendChild(info);
+let del =
+document.createElement("button");
 
-row.appendChild(deleteButton);
+del.className = "delete";
+
+del.textContent = "🗑️ Delete";
+
+del.onclick = function(){
+
+deleteSong(index);
+
+};
+
+
+actions.appendChild(edit);
+
+actions.appendChild(del);
+
+row.appendChild(actions);
 
 list.appendChild(row);
 
@@ -346,28 +510,8 @@ list.appendChild(row);
 }
 
 
-document
-.getElementById("song")
-.addEventListener("keydown",function(e){
-
-if(e.key==="Enter") addSong();
-
-});
-
-
-document
-.getElementById("artist")
-.addEventListener("keydown",function(e){
-
-if(e.key==="Enter") addSong();
-
-});
-
-
 showSongs();
 
-
-/* Offline support */
 
 if("serviceWorker" in navigator){
 
